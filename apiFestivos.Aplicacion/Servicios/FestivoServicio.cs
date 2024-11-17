@@ -2,6 +2,8 @@
 using apiFestivos.Core.Interfaces.Servicios;
 using apiFestivos.Dominio.DTOs;
 using apiFestivos.Dominio.Entidades;
+using Moq;
+using Xunit;
 
 namespace apiFestivos.Aplicacion.Servicios
 {
@@ -133,6 +135,49 @@ namespace apiFestivos.Aplicacion.Servicios
             // Verificar si la fecha existe en la lista de festivos
             return festivos.Any(f => f.Fecha.Date == Fecha.Date);
         }
+
+
+        public async Task EsFestivo_FechaEsFestivo_RetornaTrue()
+        {
+            // Arrange
+            var mockRepositorio = new Mock<IFestivoRepositorio>();
+            var festivosMock = new List<Festivo>
+        {
+            new Festivo { IdTipo = 1, Mes = 12, Dia = 25, Nombre = "Navidad" } // Navidad
+        };
+            mockRepositorio.Setup(r => r.ObtenerTodos()).ReturnsAsync(festivosMock);
+
+            var servicio = new FestivoServicio(mockRepositorio.Object);
+            var fechaFestiva = new DateTime(2024, 12, 25); // Navidad 2024
+
+            // Act
+            var esFestivo = await servicio.EsFestivo(fechaFestiva);
+
+            // Assert
+            Assert.True(esFestivo); // La fecha es festiva
+        }
+
+
+        public async Task EsFestivo_FechaNoEsFestivo_RetornaFalse()
+        {
+            // Arrange
+            var mockRepositorio = new Mock<IFestivoRepositorio>();
+            var festivosMock = new List<Festivo>
+        {
+            new Festivo { IdTipo = 1, Mes = 12, Dia = 25, Nombre = "Navidad" } // Navidad
+        };
+            mockRepositorio.Setup(r => r.ObtenerTodos()).ReturnsAsync(festivosMock);
+
+            var servicio = new FestivoServicio(mockRepositorio.Object);
+            var fechaNoFestiva = new DateTime(2024, 12, 26); // Día no festivo
+
+            // Act
+            var esFestivo = await servicio.EsFestivo(fechaNoFestiva);
+
+            // Assert
+            Assert.False(esFestivo); // La fecha no es festiva
+        }
     }
 
 }
+
